@@ -9,19 +9,19 @@ public class AgentCreator
 	static public readonly Type[] AllySteeringAgentTypes = new Type[]
     {
 		typeof(AllyAgent),
-		typeof(AllyAgent),
-		typeof(AllyAgent),
-		typeof(AllyAgent),
-		typeof(AllyAgent),
-		typeof(AllyAgent),
-		typeof(AllyAgent),
-		typeof(AllyAgent),
-		typeof(AllyAgent),
-		typeof(AllyAgent),
-		typeof(AllyAgent),
-		typeof(AllyAgent),
-		typeof(AllyAgent),
-		typeof(AllyAgent),
-		typeof(AllyAgent)
+		typeof(CourageousAgent),
+		typeof(CourageousAgent),
+		typeof(CourageousAgent),
+		typeof(CourageousAgent),
+		typeof(CourageousAgent),
+		typeof(ProtectiveAgent),
+		typeof(ProtectiveAgent),
+		typeof(ProtectiveAgent),
+		typeof(ProtectiveAgent),
+		typeof(ProtectiveAgent),
+		typeof(CowardlyAgent),
+		typeof(CowardlyAgent),
+		typeof(CowardlyAgent),
+		typeof(CowardlyAgent)
 	};
 }
