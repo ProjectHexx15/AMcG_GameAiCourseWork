@@ -12,9 +12,22 @@ public class OffsetPersuit : SteeringBehaviour
     {
         SteeringAgent targetAgent = GameData.Instance.allies[0];
 
-        // testing values
-        offset.x = 0.1f;
-        offset.z = 0.1f;
+
+        if (this.gameObject.GetComponent<CourageousAgent>())
+        {
+            offset.x = 10.0f;
+            offset.z = 10.0f;
+        }
+        else if (this.gameObject.GetComponent<ProtectiveAgent>())
+        {
+            offset.x = 20.0f;
+            offset.z = 20.0f;
+        }
+        else if ((this.gameObject.GetComponent<CowardlyAgent>()))
+        {
+            offset.x = 30.0f;
+            offset.z = 30.0f;
+        }
 
         // convert the offset from local to world space
         Vector3 worldSpaceOffset = targetAgent.transform.position + targetAgent.CurrentVelocity * offset.z + -targetAgent.CurrentVelocity * offset.x;
