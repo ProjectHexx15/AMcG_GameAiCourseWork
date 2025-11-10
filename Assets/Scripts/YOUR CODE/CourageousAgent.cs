@@ -5,7 +5,7 @@ public class CourageousAgent : SteeringAgent
 
     protected override void InitialiseFromAwake()
     {
-        gameObject.AddComponent<OffsetPersuit>();
+        gameObject.AddComponent<OP_Courageous>();
     }
 
 }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using static UnityEditor.FilePathAttribute;
 
 public class TestingVariables : MonoBehaviour
 {
@@ -6,7 +7,7 @@ public class TestingVariables : MonoBehaviour
 	public const int TerrainSeed = 3;
 
 	/// <summary>If >= 0 then the specified seed will be used for unit locations rather than the normal algorithms</summary>
-	public const int LocationsSeed = -1;
+	public const int LocationsSeed = 6428875;
 
 	/// <summary>If < 0 then normal amount of enemies are produced. If >= 0 then the specific amount of enemeies are created up to the allowed normal amount</summary>
 	public const int MaxEnemies = -1;

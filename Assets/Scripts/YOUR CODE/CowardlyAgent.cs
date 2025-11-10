@@ -4,7 +4,7 @@ public class CowardlyAgent : SteeringAgent
 {
     protected override void InitialiseFromAwake()
     {
-        gameObject.AddComponent<OffsetPersuit>();
+        gameObject.AddComponent<OP_Cowardly>();
     }
 
 }

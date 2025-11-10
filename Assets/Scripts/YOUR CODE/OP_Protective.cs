@@ -1,10 +1,9 @@
-using TMPro;
-using Unity.VisualScripting;
+using NUnit.Framework;
+using System.Collections.Generic;
 using UnityEngine;
 
-public class OffsetPersuit : SteeringBehaviour
+public class OP_Protective : SteeringBehaviour
 {
-
     private Vector3 offset;
     private float arrivalRadius = 2.0f;
 
@@ -13,41 +12,43 @@ public class OffsetPersuit : SteeringBehaviour
     {
         // find this agents index
         int index = GameData.Instance.allies.IndexOf(steeringAgent);
+        List<SteeringAgent> protectiveAgents = new List<SteeringAgent>();
+
+        // find protective agents
+        for (int i = 0; i < GameData.Instance.allies.Count; i++)
+        {
+            if (GameData.Instance.allies[i].GetComponent<CourageousAgent>() != null)
+            {
+                protectiveAgents.Add(GameData.Instance.allies[i]);
+            }
+        }
 
         SteeringAgent targetAgent = GameData.Instance.allies[0];
-        float spacingX = 1.5f; 
-        float spacingY = -1.0f; // courageous spacing is default
-
-        if (this.gameObject.GetComponent<ProtectiveAgent>())
-        {
-            spacingY = -2.0f;
-        }
-        else if ((this.gameObject.GetComponent<CowardlyAgent>()))
-        {
-            spacingY = -3.0f;
-        }
-
+        float spacingX = 1.5f;
+        float spacingY = -2.0f; 
+        float spacingWidth = (protectiveAgents.Count - 1) * spacingX;
 
         // calculate offset in local space
-        Vector3 localOffset = new Vector3(index * spacingX, spacingY, 0);
+        Vector3 localOffset = new Vector3((index - 6) * spacingX, spacingY, 0);
 
         // center the agents formation around the target
-        localOffset.x -= (GameData.Instance.allies.Count - 1) * spacingX / 2;
+        localOffset.x -= spacingWidth / 2;
 
 
         // convert the offset from local to world space
-        Vector3 worldSpaceOffset = targetAgent.transform.position+ localOffset;
+        Vector3 worldSpaceOffset = targetAgent.transform.position + localOffset;
+
 
 
         // Calculate the distance from Agent to desired offset
-        Vector3 distToOffset = worldSpaceOffset - this.transform.position; 
+        Vector3 distToOffset = worldSpaceOffset - this.transform.position;
 
         // calculate esitmation to reach the offset position
         float distance = distToOffset.magnitude;
         float speed = steeringAgent.CurrentVelocity.magnitude;
         float lookAheadTime;
 
-        if(speed > 0)
+        if (speed > 0)
         {
             lookAheadTime = distance / speed;
         }
@@ -57,14 +58,14 @@ public class OffsetPersuit : SteeringBehaviour
         }
 
 
-            // calculate the predicted future position of the offset
-            Vector3 futureOffsetPos = worldSpaceOffset + targetAgent.CurrentVelocity * lookAheadTime;
+        // calculate the predicted future position of the offset
+        Vector3 futureOffsetPos = worldSpaceOffset + targetAgent.CurrentVelocity * lookAheadTime;
 
-        
+
         // use arrival behaviour to guide the player towards the predicted offset
         Vector3 distanceToTarget = futureOffsetPos - this.transform.position;
 
-        if(distanceToTarget.magnitude < arrivalRadius)
+        if (distanceToTarget.magnitude < arrivalRadius)
         {
             // slow desired velocity as it approaches target pos
             desiredVelocity *= distanceToTarget.magnitude / arrivalRadius;
@@ -79,6 +80,5 @@ public class OffsetPersuit : SteeringBehaviour
         return desiredVelocity;
 
     }
-
 
 }
