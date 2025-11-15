@@ -40,6 +40,7 @@ public class CourageousAgent : SteeringAgent
                     break;
                 }
 
+
                 break;
 
             case State.SeenEnemy:
@@ -116,4 +117,6 @@ public class CourageousAgent : SteeringAgent
         }
         return false;
     }
+    
+
 }

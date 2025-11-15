@@ -26,6 +26,5 @@ public class SeekEnemy : SteeringBehaviour
         steeringVelocity = desiredVelocity - steeringAgent.CurrentVelocity;
         return steeringVelocity;
 
-        throw new System.NotImplementedException();
     }
 }

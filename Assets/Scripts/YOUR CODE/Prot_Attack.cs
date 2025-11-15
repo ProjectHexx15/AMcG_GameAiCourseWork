@@ -1,12 +1,13 @@
 using UnityEngine;
 
-public class Cour_AttackEnemy : SteeringBehaviour
+public class Prot_Attack : SteeringBehaviour
 {
-    private float attackRadius = 2.0f;
+    private float attackRadius = 15.0f;
     private SteeringAgent targetAgent;
 
     public override Vector3 UpdateBehaviour(SteeringAgent steeringAgent)
-    {
+        {
+
         // find enemy to attack
         for (int i = 0; i < GameData.Instance.enemies.Count; i++)
         {
@@ -17,12 +18,16 @@ public class Cour_AttackEnemy : SteeringBehaviour
             if (distance <= attackRadius)
             {
                 targetAgent = GameData.Instance.enemies[i];
-                
+
             }
 
         }
-        steeringAgent.AttackWith(Attack.AttackType.Melee);
+        steeringAgent.AttackWith(Attack.AttackType.AllyGun);
 
         return steeringVelocity;
+
     }
+
+    
+
 }
