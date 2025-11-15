@@ -37,6 +37,7 @@ public class CourageousAgent : SteeringAgent
                     currentState = State.SeenEnemy;
                     gameObject.GetComponent<OP_Courageous>().enabled = false;
                     gameObject.GetComponent<SeekEnemy>().enabled = true;
+                    break;
                 }
 
                 break;
@@ -48,21 +49,31 @@ public class CourageousAgent : SteeringAgent
                     currentState = State.AttackEnemy;
                     gameObject.GetComponent<SeekEnemy>().enabled = false;
                     gameObject.GetComponent<Cour_AttackEnemy>().enabled = true;
+                    break;
 
                 }
 
-                // if enemey within attack range
-                // end if
+                if(!EnemyInAttackRange() && !EnemyInSight())
+                {
+                    currentState = State.FollowLeader;
+                    gameObject.GetComponent<SeekEnemy>().enabled = false;
+                    gameObject.GetComponent<OP_Courageous>().enabled = true;
+                    break;
+                }
 
 
-                // if enemy outwith sight range
-                // end if
                 break;
 
             case State.AttackEnemy:
 
-                // if no enemies are within attack range
-                // end if 
+                if(!EnemyInAttackRange())
+                {
+                    currentState = State.SeenEnemy;
+                    gameObject.GetComponent<SeekEnemy>().enabled = true;
+                    gameObject.GetComponent<Cour_AttackEnemy>().enabled = false;
+                    break;
+                }
+
 
                 break;
 
@@ -86,6 +97,8 @@ public class CourageousAgent : SteeringAgent
         return false;
 
     }
+
+
 
     private bool EnemyInAttackRange()
     {
