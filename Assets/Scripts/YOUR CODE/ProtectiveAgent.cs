@@ -14,7 +14,7 @@ public class ProtectiveAgent : SteeringAgent
     }
 
     private state currentState;
-    private List<Attack> attacks;
+   // private List<Attack> attacks;
     public SteeringAgent closestAlly;
     private float sightRadius = 15.0f;
     private float attackRadius = 10.0f;
@@ -143,28 +143,33 @@ public class ProtectiveAgent : SteeringAgent
     {
         // find closest ally so it can be protected
         closestAlly = GetNearestAgent(transform.position, GameData.Instance.allies);
-        Debug.Log(closestAlly);
 
-        if(closestAlly != null)
+        if(closestAlly = null)
         {
             return false;
         }
 
-        attacks = GameData.Instance.attacks;
+        var attacks = GameData.Instance.attacks;
+        var closestAttack = GetNearestAttack(closestAlly.transform.position, attacks);
+        //if(closestAttack.Type != Attack.AttackType.None)
+        //{
+          //  var attackVector = closestAttack.currentPosition - closestAlly.transform.position;
+           // var targetPosition = Vector3.Normalize(attackVector) * 2.0f + closestAlly.transform.position;
+       // }
 
-        // doesnt do this
-        Debug.Log(attacks);
-
-        foreach(Attack attack in attacks)
+        foreach (var attack in attacks)
         {
             if(attack.IsEnemy && attack.Type == Attack.AttackType.EnemyGun)
             {
+
+                var attackDirection = attack.Direction;
+                var attackToAllyDirection = Vector3.Normalize(closestAlly.transform.position - attack.currentPosition);
+
                 // check if the attack is cominig to nearest ally
-                // dot compares alignment of two vectors
-                float dot = Vector3.Dot(closestAlly.CurrentVelocity.normalized, attack.Direction.normalized);
+                float dot = Vector3.Dot(attackToAllyDirection, attackDirection);
                 Debug.Log(dot);
 
-                if(dot > 0)
+                if(dot < 0.5)
                 {
                     return true;
                 }
@@ -174,6 +179,27 @@ public class ProtectiveAgent : SteeringAgent
         return false;
 
 
+    }
+
+    public static Attack GetNearestAttack(Vector3 position, List<Attack> attacks)
+    {
+        Attack nearestAttack = new Attack(Attack.AttackType.None, null, null);
+        float nearestSquareDistance = float.MaxValue;
+        foreach (var attack in attacks)
+        {
+            if(!attack.IsEnemy)
+            {
+                continue;
+            }
+
+            var squareDistance = (attack.currentPosition - position).sqrMagnitude;
+            if (squareDistance < nearestSquareDistance)
+            {
+                nearestSquareDistance = squareDistance;
+                nearestAttack = attack;
+            }
+        }
+        return nearestAttack;
     }
 
 }
