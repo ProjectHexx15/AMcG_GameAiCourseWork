@@ -94,6 +94,23 @@ public class ProtectiveAgent : SteeringAgent
 
             case state.DefendAlly:
 
+                if(!EnemyAttackAlly() && EnemyInAttackRange())
+                {
+                    currentState = state.AttackEnemy;
+                    gameObject.GetComponent<InterposeAlly>().enabled = false;
+                    gameObject.GetComponent<Prot_Attack>().enabled = true;
+                    break;
+                }
+
+                if(!EnemyAttackAlly() && !EnemyInAttackRange())
+                {
+                    currentState = state.AttackEnemy;
+                    gameObject.GetComponent<InterposeAlly>().enabled = false;
+                    gameObject.GetComponent<EnemyInSight>().enabled = true;
+                    break;
+                }
+
+
 
                 break;
 
@@ -104,94 +121,111 @@ public class ProtectiveAgent : SteeringAgent
 
     private bool EnemyInSight()
     {
-        for (int i = 0; i < GameData.Instance.enemies.Count; i++)
+        // ensuring no null values are in the list
+        if (GameData.Instance == null || GameData.Instance.enemies == null)
+            return false;
+
+        foreach (var enemy in GameData.Instance.enemies)
         {
-            // calculate distance between player and each enemy
-            float distance = Vector3.Distance(this.transform.position, GameData.Instance.enemies[i].transform.position);
+            // to ensure there are no null enemies being considered 
+            if (enemy == null) continue;
 
-            // if the enemy is within the sight range
+            // calculate distance
+            float distance = Vector3.Distance(transform.position, enemy.transform.position);
+
             if (distance <= sightRadius)
-            {
                 return true;
-            }
-
         }
         return false;
-
     }
-
-
 
     private bool EnemyInAttackRange()
     {
-        for (int i = 0; i < GameData.Instance.enemies.Count; i++)
+        // ensure no null values are considered
+        if (GameData.Instance == null || GameData.Instance.enemies == null)
+            return false;
+
+        // for each enemy
+        foreach (var enemy in GameData.Instance.enemies)
         {
-            // calculate distance between player and each enemy
-            float distance = Vector3.Distance(this.transform.position, GameData.Instance.enemies[i].transform.position);
+            if (enemy == null) continue;
+            // calculate distance to enemy
+            float distance = Vector3.Distance(transform.position, enemy.transform.position);
 
-            // if the enemy is within the sight range
             if (distance <= attackRadius)
-            {
                 return true;
-            }
-
         }
         return false;
     }
 
     private bool EnemyAttackAlly()
     {
-        // find closest ally so it can be protected
+        // ensure no null enemies considered - causes issues with defending allies
+        if (GameData.Instance == null || GameData.Instance.allies == null)
+            return false;
+
+        // calculate the nearest aggent to this agent
         closestAlly = GetNearestAgent(transform.position, GameData.Instance.allies);
 
-        if(closestAlly = null)
-        {
+        if (closestAlly == null)
             return false;
-        }
 
         var attacks = GameData.Instance.attacks;
-        var closestAttack = GetNearestAttack(closestAlly.transform.position, attacks);
-        //if(closestAttack.Type != Attack.AttackType.None)
-        //{
-          //  var attackVector = closestAttack.currentPosition - closestAlly.transform.position;
-           // var targetPosition = Vector3.Normalize(attackVector) * 2.0f + closestAlly.transform.position;
-       // }
+        if (attacks == null || attacks.Count == 0)
+            return false;
 
+        // loop through attacks
         foreach (var attack in attacks)
         {
-            if(attack.IsEnemy && attack.Type == Attack.AttackType.EnemyGun)
+            // ensure there are no null attacks - cuases erorrs with defendig allies
+            if (attacks == null || attack.AttackerAgent == null) continue;
+
+            if (attack.IsEnemy && attack.Type == Attack.AttackType.EnemyGun)
             {
-
+                // calculate attack direction
                 var attackDirection = attack.Direction;
-                var attackToAllyDirection = Vector3.Normalize(closestAlly.transform.position - attack.currentPosition);
 
-                // check if the attack is cominig to nearest ally
+                // calculate direction from attack to ally
+                var attackToAllyDirection = Vector3.Normalize(
+                    closestAlly.transform.position - attack.currentPosition);
+
+                // calculate dot product to determine if attack will hit ally
                 float dot = Vector3.Dot(attackToAllyDirection, attackDirection);
-                Debug.Log(dot);
+                Debug.Log($"Dot product vs ally: {dot}");
 
-                if(dot < 0.5)
-                {
+                if (dot > 0.7f) // traveling towards ally
                     return true;
+
+                if(dot > 0.3f && dot < 0.7f) // kinda close to ally
+                {
+                    // only go if allies health is low
+                    if(closestAlly.Health < 0.25) // quater left
+                    {
+                        return true;
+                    }
+
                 }
 
+
+                if(dot < 0.3f) // not on target at all
+                    return false;
             }
         }
         return false;
-
-
     }
 
     public static Attack GetNearestAttack(Vector3 position, List<Attack> attacks)
     {
+        // stores the nearest attack - set to null so attack is not created
         Attack nearestAttack = new Attack(Attack.AttackType.None, null, null);
         float nearestSquareDistance = float.MaxValue;
+
         foreach (var attack in attacks)
         {
-            if(!attack.IsEnemy)
-            {
+            // more defensive guards
+            if (attacks == null || !attack.IsEnemy)
                 continue;
-            }
-
+            // calculate squared distance
             var squareDistance = (attack.currentPosition - position).sqrMagnitude;
             if (squareDistance < nearestSquareDistance)
             {
