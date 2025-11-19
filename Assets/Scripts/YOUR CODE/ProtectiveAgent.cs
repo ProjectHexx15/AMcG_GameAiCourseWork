@@ -15,9 +15,10 @@ public class ProtectiveAgent : SteeringAgent
 
     private state currentState;
     public SteeringAgent closestAlly;
-    public Attack attacks;
+    public Attack possibleAttack;
     private float sightRadius = 15.0f;
     private float attackRadius = 10.0f;
+
 
 
     protected override void InitialiseFromAwake()
@@ -193,13 +194,18 @@ public class ProtectiveAgent : SteeringAgent
                 float dot = Vector3.Dot(attackToAllyDirection, attackDirection);
 
                 if (dot > 0.7f) // traveling towards ally
+                {
+                    possibleAttack = attack;
                     return true;
+                }
+                    
 
                 if(dot > 0.3f && dot < 0.7f) // kinda close to ally
                 {
                     // only go if allies health is low
                     if(closestAlly.Health < 0.25) // quater left
                     {
+                        possibleAttack = attack;
                         return true;
                     }
 
@@ -213,26 +219,5 @@ public class ProtectiveAgent : SteeringAgent
         return false;
     }
 
-    public static Attack GetNearestAttack(Vector3 position, List<Attack> attacks)
-    {
-        // stores the nearest attack - set to null so attack is not created
-        Attack nearestAttack = new Attack(Attack.AttackType.None, null, null);
-        float nearestSquareDistance = float.MaxValue;
-
-        foreach (var attack in attacks)
-        {
-            // more defensive guards
-            if (attacks == null || !attack.IsEnemy)
-                continue;
-            // calculate squared distance
-            var squareDistance = (attack.currentPosition - position).sqrMagnitude;
-            if (squareDistance < nearestSquareDistance)
-            {
-                nearestSquareDistance = squareDistance;
-                nearestAttack = attack;
-            }
-        }
-        return nearestAttack;
-    }
 
 }
