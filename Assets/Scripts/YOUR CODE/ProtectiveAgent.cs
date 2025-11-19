@@ -15,6 +15,7 @@ public class ProtectiveAgent : SteeringAgent
 
     private state currentState;
     public SteeringAgent closestAlly;
+    public Attack attacks;
     private float sightRadius = 15.0f;
     private float attackRadius = 10.0f;
 

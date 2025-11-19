@@ -12,8 +12,8 @@ public class CowardlyAgent : SteeringAgent
 
     private state currentState;
     public SteeringAgent closestAlly;
-    private float sightRadius = 25.0f;
-    private float attackRadius = 20.0f;
+    private float sightRadius = 15.0f;
+    private float attackRadius = 10.0f;
     private float hideRange = 5f;
 
 
@@ -48,6 +48,14 @@ public class CowardlyAgent : SteeringAgent
 
             case state.SeenEnemy:
 
+                if (!EnemyInAttackRange() && !EnemyInSight())
+                {
+                    currentState = state.FollowLeader;
+                    gameObject.GetComponent<EnemyInSight>().enabled = false;
+                    gameObject.GetComponent<OP_Cowardly>().enabled = true;
+                    break;
+                }
+
                 if (EnemyTooClose())
                 {
                     currentState = state.Hide;
@@ -65,13 +73,7 @@ public class CowardlyAgent : SteeringAgent
                     break;
                 }
 
-                if(!EnemyInAttackRange() && !EnemyInSight())
-                {
-                    currentState = state.FollowLeader;
-                    gameObject.GetComponent<EnemyInSight>().enabled = false;
-                    gameObject.GetComponent<OP_Cowardly>().enabled = true;
-                    break;
-                }
+
 
 
 

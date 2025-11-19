@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class Cow_Attack : SteeringBehaviour
 {
-    private float attackRadius = 20f;
+    private float attackRadius = 10f;
     private SteeringAgent targetAgent;
 
 
