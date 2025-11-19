@@ -14,7 +14,6 @@ public class ProtectiveAgent : SteeringAgent
     }
 
     private state currentState;
-   // private List<Attack> attacks;
     public SteeringAgent closestAlly;
     private float sightRadius = 15.0f;
     private float attackRadius = 10.0f;
@@ -191,7 +190,6 @@ public class ProtectiveAgent : SteeringAgent
 
                 // calculate dot product to determine if attack will hit ally
                 float dot = Vector3.Dot(attackToAllyDirection, attackDirection);
-                Debug.Log($"Dot product vs ally: {dot}");
 
                 if (dot > 0.7f) // traveling towards ally
                     return true;

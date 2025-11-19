@@ -8,8 +8,6 @@ public class InterposeAlly : SteeringBehaviour
 
     public override Vector3 UpdateBehaviour(SteeringAgent steeringAgent)
     {
-        Debug.Log("ILL SAVE YOU");
-
         return steeringVelocity;
 
     }

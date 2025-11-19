@@ -2,11 +2,22 @@ using UnityEngine;
 
 public class EnemyInSight : SteeringBehaviour
 {
-    private float sightRadius = 20.0f;
+    private float sightRadius;
     private SteeringAgent targetAgent;
 
     public override Vector3 UpdateBehaviour(SteeringAgent steeringAgent)
     {
+
+        if(this.GetComponent<OP_Protective>() != null)
+        {
+            sightRadius = 20.0f;
+        }
+        else
+        {
+            sightRadius = 25.0f;
+        }
+
+
         // need to re find the agent
         for (int i = 0; i < GameData.Instance.enemies.Count; i++)
         {
