@@ -42,6 +42,8 @@ public class InterposeAlly : SteeringBehaviour
         // calculate desired velocity
         desiredVelocity = toTarget.normalized * desiredSpeed;
 
+        steeringVelocity = desiredVelocity - steeringAgent.CurrentVelocity;
+
         return steeringVelocity;
 
     }

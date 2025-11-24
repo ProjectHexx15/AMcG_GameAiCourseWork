@@ -1,8 +1,9 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class CowardlyAgent : SteeringAgent
 {
-    protected enum state
+    protected enum State
     {
         FollowLeader,
         SeenEnemy,
@@ -10,17 +11,18 @@ public class CowardlyAgent : SteeringAgent
         Hide
     }
 
-    private state currentState;
+    private State currentState;
     public SteeringAgent closestAlly;
     private float sightRadius = 15.0f;
     private float attackRadius = 10.0f;
-    private float hideRange = 5f;
+    private float hideEnterRange = 5f;
+    private float hideExitRange = 6f;
 
 
     protected override void InitialiseFromAwake()
     {
-        gameObject.AddComponent<OP_Cowardly>();
-
+        currentState = State.FollowLeader;
+        gameObject.AddComponent<OP_Cowardly>().enabled = true;
         gameObject.AddComponent<EnemyInSight>().enabled = false;
         gameObject.AddComponent<HideBehindAllies>().enabled = false;
         gameObject.AddComponent<Cow_Attack>().enabled = false;
@@ -33,80 +35,60 @@ public class CowardlyAgent : SteeringAgent
 
         switch (currentState)
         {
-            case state.FollowLeader:
+            case State.FollowLeader:
 
                 if(EnemyInSight())
                 {
-                    currentState = state.SeenEnemy;
-                    gameObject.GetComponent<OP_Cowardly>().enabled = false;
-                    gameObject.GetComponent<EnemyInSight>().enabled = true;
-                    break;
+                    SwitchState(State.SeenEnemy);
                 }
-
                 break;
 
-            case state.SeenEnemy:
+            case State.SeenEnemy:
 
-                if (!EnemyInAttackRange() || !EnemyInSight())
+                if (EnemyTooClose(hideEnterRange))
                 {
-                    currentState = state.FollowLeader;
-                    gameObject.GetComponent<EnemyInSight>().enabled = false;
-                    gameObject.GetComponent<OP_Cowardly>().enabled = true;
-                    break;
+                    SwitchState(State.Hide);
                 }
-
-                if (EnemyTooClose())
-                {
-                    currentState = state.Hide;
-                    gameObject.GetComponent<EnemyInSight>().enabled = false;
-                    gameObject.GetComponent<HideBehindAllies>().enabled = true;
-                    break;
-                }
-
 
                 if (EnemyInAttackRange())
                 {
-                    currentState = state.AttackEnemy;
-                    gameObject.GetComponent<EnemyInSight>().enabled = false;
-                    gameObject.GetComponent<Cow_Attack>().enabled = true;
-                    break;
+                    SwitchState(State.AttackEnemy);
                 }
 
-
-
-
-
+                if (!EnemyInSight())
+                {
+                    SwitchState(State.FollowLeader);
+                }
                 break;
 
-            case state.AttackEnemy:
+            case State.AttackEnemy:
 
-                if(!EnemyInAttackRange())
+                if (EnemyTooClose(hideEnterRange))
                 {
-                    currentState = state.SeenEnemy;
-                    gameObject.GetComponent<Cow_Attack>().enabled = false;
-                    gameObject.GetComponent<OP_Cowardly>().enabled = true;
-                    break;
+                    SwitchState(State.Hide);
                 }
 
-                if(EnemyTooClose())
+                if (!EnemyInAttackRange() && EnemyInSight())
                 {
-                    currentState = state.Hide;
-                    gameObject.GetComponent<Cow_Attack>().enabled = false;
-                    gameObject.GetComponent<HideBehindAllies>().enabled = true;
+                    SwitchState(State.SeenEnemy);
                 }
 
-
+                else if (!EnemyInAttackRange() && !EnemyInSight())
+                {
+                    SwitchState(State.FollowLeader);
+                }
                 break;
 
-            case state.Hide:
+            case State.Hide:
 
-                if(!EnemyTooClose())
+                if (!EnemyInSight())
                 {
-                    currentState = state.SeenEnemy;
-                    gameObject.GetComponent<HideBehindAllies>().enabled = false;
-                    gameObject.GetComponent<EnemyInSight>().enabled = true;
-                    break;
+                    SwitchState(State.FollowLeader);
+                }
 
+                if (!EnemyTooClose(hideExitRange))
+                {
+                    SwitchState(State.SeenEnemy);
                 }
 
                 break;        
@@ -153,7 +135,7 @@ public class CowardlyAgent : SteeringAgent
         return false;
     }
 
-    private bool EnemyTooClose()
+    private bool EnemyTooClose(float range)
     {
         // ensuring no null values are in the list
         if (GameData.Instance == null || GameData.Instance.enemies == null)
@@ -167,10 +149,44 @@ public class CowardlyAgent : SteeringAgent
             // calculate distance
             float distance = Vector3.Distance(transform.position, enemy.transform.position);   
 
-            if (distance <= hideRange)
+            if (distance <= range)
                 return true;
         }
         return false;
+    }
+
+    // helper function
+    private void SwitchState(State newState)
+    {
+        // Disable all behaviours
+        gameObject.GetComponent<OP_Cowardly>().enabled = false;
+        gameObject.GetComponent<EnemyInSight>().enabled = false;
+        gameObject.GetComponent<Cow_Attack>().enabled = false;
+        gameObject.GetComponent<HideBehindAllies>().enabled = false;
+
+        // enable the relevant state only
+
+        switch (newState)
+        {
+            case State.FollowLeader:
+                gameObject.GetComponent<OP_Cowardly>().enabled = true;
+                break;
+
+            case State.SeenEnemy:
+                gameObject.GetComponent<EnemyInSight>().enabled = true;
+                break;
+
+            case State.AttackEnemy:
+                gameObject.GetComponent<Cow_Attack>().enabled = true;
+                break;
+
+            case State.Hide:
+                gameObject.GetComponent<HideBehindAllies>().enabled = true;
+                break;
+
+        }
+
+        currentState = newState;
     }
 
 }

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class ProtectiveAgent : SteeringAgent
 {
-    protected enum state
+    protected enum State
     {
         FollowLeader,
         SeenEnemy,
@@ -13,19 +13,16 @@ public class ProtectiveAgent : SteeringAgent
     
     }
 
-    private state currentState;
+    private State currentState;
     public SteeringAgent closestAlly;
     public Attack possibleAttack;
     private float sightRadius = 15.0f;
     private float attackRadius = 10.0f;
 
-
-
     protected override void InitialiseFromAwake()
     {
-        gameObject.AddComponent<OP_Protective>();
-
-        // initially following leader
+        currentState = State.FollowLeader;
+        gameObject.AddComponent<OP_Protective>().enabled = true;
         gameObject.AddComponent<Prot_Attack>().enabled = false;
         gameObject.AddComponent<InterposeAlly>().enabled = false;
         gameObject.AddComponent<EnemyInSight>().enabled = false;
@@ -39,83 +36,59 @@ public class ProtectiveAgent : SteeringAgent
         switch (currentState)
         {
         
-            case state.FollowLeader:
+            case State.FollowLeader:
 
                 if(EnemyInSight())
                 {
-                    currentState = state.SeenEnemy;
-                    gameObject.GetComponent<OP_Protective>().enabled = false;
-                    gameObject.GetComponent<EnemyInSight>().enabled = true;
-                    break;
-
+                    SwitchState(State.SeenEnemy);
                 }
-
                 break;
 
-            case state.SeenEnemy:
+            case State.SeenEnemy:
 
                 if(EnemyInAttackRange())
                 {
-                    currentState = state.AttackEnemy;
-                    gameObject.GetComponent<EnemyInSight>().enabled = false;
-                    gameObject.GetComponent<Prot_Attack>().enabled = true;
-                    break;
+                    SwitchState(State.AttackEnemy);
                 }
 
-                if(!EnemyInSight() || !EnemyInAttackRange())
+                if(!EnemyInSight() && !EnemyInAttackRange())
                 {
-                    currentState = state.FollowLeader;
-                    gameObject.GetComponent<EnemyInSight>().enabled = false;
-                    gameObject.GetComponent<OP_Protective>().enabled = true;
-                    break;
+
+                    SwitchState(State.FollowLeader);
                 }
 
                 if(EnemyAttackAlly())
                 {
-                    currentState = state.DefendAlly;
-                    gameObject.GetComponent<EnemyInSight>().enabled = false;
-                    gameObject.GetComponent<InterposeAlly>().enabled = true;
-                    break;
+                    SwitchState(State.DefendAlly);
                 }
-               
                 break;
 
-            case state.AttackEnemy:
+            case State.AttackEnemy:
 
                 if(!EnemyInAttackRange())
                 {
-                    currentState = state.SeenEnemy;
-                    gameObject.GetComponent<EnemyInSight>().enabled = true;
-                    gameObject.GetComponent<Prot_Attack>().enabled = false;
-                    break;
+                    SwitchState(State.SeenEnemy);
                 }
 
+                else if(!EnemyInAttackRange() && !EnemyInSight())
+                {
+                    SwitchState(State.FollowLeader);
+                }
                 break;
 
 
-            case state.DefendAlly:
+            case State.DefendAlly:
 
                 if(!EnemyAttackAlly() && EnemyInAttackRange())
                 {
-                    currentState = state.AttackEnemy;
-                    gameObject.GetComponent<InterposeAlly>().enabled = false;
-                    gameObject.GetComponent<Prot_Attack>().enabled = true;
-                    break;
+                    SwitchState(State.AttackEnemy);
                 }
 
                 if(!EnemyAttackAlly() && !EnemyInAttackRange())
                 {
-                    currentState = state.AttackEnemy;
-                    gameObject.GetComponent<InterposeAlly>().enabled = false;
-                    gameObject.GetComponent<EnemyInSight>().enabled = true;
-                    break;
+                    SwitchState(State.SeenEnemy);
                 }
-
-
-
-                break;
-
-        
+                break;        
         }
 
     }
@@ -219,5 +192,39 @@ public class ProtectiveAgent : SteeringAgent
         return false;
     }
 
+    // helper function
+    private void SwitchState(State newState)
+    {
+        // Disable all behaviours
+        gameObject.GetComponent<OP_Protective>().enabled = false;
+        gameObject.GetComponent<EnemyInSight>().enabled = false;
+        gameObject.GetComponent<Prot_Attack>().enabled = false;
+        gameObject.GetComponent<InterposeAlly>().enabled = false;
+
+        // enable the relevant state only
+
+        switch (newState)
+        {
+            case State.FollowLeader:
+                gameObject.GetComponent<OP_Protective>().enabled = true;
+                break;
+
+            case State.SeenEnemy:
+                gameObject.GetComponent<EnemyInSight>().enabled = true;
+                break;
+
+            case State.AttackEnemy:
+                gameObject.GetComponent<Prot_Attack>().enabled = true;
+                break;
+
+            case State.DefendAlly:
+                gameObject.GetComponent<InterposeAlly>().enabled = true;
+                break;
+
+
+        }
+
+        currentState = newState;
+    }
 
 }
