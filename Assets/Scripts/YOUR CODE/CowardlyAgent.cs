@@ -31,7 +31,6 @@ public class CowardlyAgent : SteeringAgent
     {
         base.CooperativeArbitration();
 
-
         switch (currentState)
         {
             case state.FollowLeader:
@@ -48,7 +47,7 @@ public class CowardlyAgent : SteeringAgent
 
             case state.SeenEnemy:
 
-                if (!EnemyInAttackRange() && !EnemyInSight())
+                if (!EnemyInAttackRange() || !EnemyInSight())
                 {
                     currentState = state.FollowLeader;
                     gameObject.GetComponent<EnemyInSight>().enabled = false;
@@ -173,8 +172,5 @@ public class CowardlyAgent : SteeringAgent
         }
         return false;
     }
-
-
-
 
 }

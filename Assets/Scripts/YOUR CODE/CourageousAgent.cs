@@ -54,7 +54,7 @@ public class CourageousAgent : SteeringAgent
 
                 }
 
-                if(!EnemyInAttackRange() && !EnemyInSight())
+                if(!EnemyInAttackRange() || !EnemyInSight())
                 {
                     currentState = State.FollowLeader;
                     gameObject.GetComponent<SeekEnemy>().enabled = false;

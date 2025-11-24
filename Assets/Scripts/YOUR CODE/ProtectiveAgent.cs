@@ -62,7 +62,7 @@ public class ProtectiveAgent : SteeringAgent
                     break;
                 }
 
-                if(!EnemyInSight() && !EnemyInAttackRange())
+                if(!EnemyInSight() || !EnemyInAttackRange())
                 {
                     currentState = state.FollowLeader;
                     gameObject.GetComponent<EnemyInSight>().enabled = false;
