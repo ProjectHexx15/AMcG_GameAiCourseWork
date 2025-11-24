@@ -20,10 +20,19 @@ public class SeekEnemy : SteeringBehaviour
 
         }
 
-        // calculate the desired velocity of the agent and limit to max speed of the agent
-        desiredVelocity = Vector3.Normalize(targetAgent.transform.position - transform.position) * SteeringAgent.MaxCurrentSpeed;
+        if(targetAgent != null)
+        {
+            // calculate the desired velocity of the agent and limit to max speed of the agent
+            desiredVelocity = Vector3.Normalize(targetAgent.transform.position - transform.position) * SteeringAgent.MaxCurrentSpeed;
+        }
+        else
+        {
+            desiredVelocity = Vector3.zero;
+        }
 
-        steeringVelocity = desiredVelocity - steeringAgent.CurrentVelocity;
+
+
+            steeringVelocity = desiredVelocity - steeringAgent.CurrentVelocity;
         return steeringVelocity;
 
     }

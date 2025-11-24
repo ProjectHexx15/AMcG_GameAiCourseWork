@@ -42,6 +42,10 @@ public class ProtectiveAgent : SteeringAgent
                 {
                     SwitchState(State.SeenEnemy);
                 }
+                else if (EnemyInSight())
+                {
+                    SwitchState(State.SeenEnemy);
+                }
                 break;
 
             case State.SeenEnemy:
@@ -65,7 +69,7 @@ public class ProtectiveAgent : SteeringAgent
 
             case State.AttackEnemy:
 
-                if(!EnemyInAttackRange())
+                if(!EnemyInAttackRange() && EnemyInSight())
                 {
                     SwitchState(State.SeenEnemy);
                 }

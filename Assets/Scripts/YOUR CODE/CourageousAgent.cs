@@ -34,6 +34,10 @@ public class CourageousAgent : SteeringAgent
                 {
                     SwitchState(State.SeenEnemy);
                 }
+                else if (EnemyInSight())
+                {
+                    SwitchState(State.SeenEnemy);
+                }
                 break;
  
             case State.SeenEnemy:

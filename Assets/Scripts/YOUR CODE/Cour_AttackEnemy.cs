@@ -7,55 +7,68 @@ public class Cour_AttackEnemy : SteeringBehaviour
 
     public override Vector3 UpdateBehaviour(SteeringAgent steeringAgent)
     {
-        // find enemy to attack
-        for (int i = 0; i < GameData.Instance.enemies.Count; i++)
+        targetAgent = GetClosestEnemyInRange();
+
+        if (targetAgent != null && targetAgent.Health > 0)
         {
-            // calculate distance between player and each enemy
-            float distance = Vector3.Distance(this.transform.position, GameData.Instance.enemies[i].transform.position);
-
-            // if the enemy is within the attack range
-            if (distance <= attackRadius)
-            {
-                targetAgent = GameData.Instance.enemies[i];
-                
-            }
-
-        }
-
-        // attack if enemy is in radius
-        if(targetAgent != null )
-        {
+            // Attack enemy if alive and in range
             steeringAgent.AttackWith(Attack.AttackType.Melee);
+            steeringVelocity = Vector3.zero; // stop moving while attacking
         }
-        else
-        { // otherwise go towards the target agent
-            Vector3 direction = (ClossestEnemy().CurrentVelocity - this.transform.position).normalized;
-            steeringVelocity = direction * SteeringAgent.MaxCurrentSpeed;
+        else // if agent is dead
+        {
+            // Move toward closest living enemy
+            SteeringAgent closest = ClosestEnemy();
+            if (closest != null)
+            {
+                Vector3 direction = (closest.transform.position - transform.position).normalized;
+                steeringVelocity = direction * SteeringAgent.MaxCurrentSpeed;
+            }
+            else
+            {
+                steeringVelocity = Vector3.zero; // no enemies left
+            }
         }
-
 
         return steeringVelocity;
     }
 
-    private SteeringAgent ClossestEnemy()
+    private SteeringAgent GetClosestEnemyInRange()
     {
-        SteeringAgent clossestEnemy = null;
+        SteeringAgent closest = null;
         float closestDistance = Mathf.Infinity;
 
-        for (int i = 0; i < GameData.Instance.enemies.Count; i++)
+        foreach (var enemy in GameData.Instance.enemies)
         {
-            float distance = Vector3.Distance(this.transform.position, GameData.Instance.enemies[i].transform.position);
-
-            if (distance <= closestDistance)
+            if (enemy == null || enemy.Health <= 0) continue;
+            // calculate closest enemey in attack range
+            float distance = Vector3.Distance(transform.position, enemy.transform.position);
+            if (distance < closestDistance && distance <= attackRadius)
             {
                 closestDistance = distance;
-                clossestEnemy = GameData.Instance.enemies[i];
+                closest = enemy;
             }
-
         }
+        return closest;
+    }
+    private SteeringAgent ClosestEnemy()
+    {
+        SteeringAgent closest = null;
+        float closestDistance = Mathf.Infinity;
 
+        foreach (var enemy in GameData.Instance.enemies)
+        {
+            if (enemy == null || enemy.Health <= 0) continue;
 
-        return clossestEnemy;
-
+            // calculate distance to enemt
+            float distance = Vector3.Distance(transform.position, enemy.transform.position);
+            if (distance < closestDistance)
+            {
+                // update values
+                closestDistance = distance;
+                closest = enemy;
+            }
+        }
+        return closest;
     }
 }

@@ -17,13 +17,16 @@ public class EnemyInSight : SteeringBehaviour
             sightRadius = 15.0f;
         }
 
-        if(targetAgent == null)
+        targetAgent = findTargetAgent();
+
+        if (targetAgent != null)
         {
-            targetAgent = findTargetAgent();
+            desiredVelocity = (targetAgent.transform.position - transform.position).normalized * SteeringAgent.MaxCurrentSpeed;
         }
-       
-        // calculate the desired velocity of the agent and limit to max speed of the agent
-        desiredVelocity = Vector3.Normalize(targetAgent.transform.position - transform.position) * SteeringAgent.MaxCurrentSpeed;
+        else
+        {
+            desiredVelocity = Vector3.zero; // no enemy in sight
+        }
 
         steeringVelocity = desiredVelocity - steeringAgent.CurrentVelocity;
         return steeringVelocity;

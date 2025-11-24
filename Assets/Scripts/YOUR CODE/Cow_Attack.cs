@@ -12,49 +12,28 @@ public class Cow_Attack : SteeringBehaviour
 
     public override Vector3 UpdateBehaviour(SteeringAgent steeringAgent)
     {
-        targetAgent = null;
-        float closestDistance = Mathf.Infinity;
+        targetAgent = GetClosestEnemyInRange();
 
-
-        // find the closest enemy to attack 
-        for (int i = 0; i < GameData.Instance.enemies.Count; i++)
+        if (targetAgent != null && targetAgent.Health > 0)
         {
-            // calculate distance between player and each enemy
-            float distance = Vector3.Distance(this.transform.position, GameData.Instance.enemies[i].transform.position);
-
-            // if the enemy is within the attack range and close to agent
-            if (distance <= attackRadius && distance < closestDistance)
-            {
-                closestDistance = distance;
-                targetAgent = GameData.Instance.enemies[i];
-
-            }
-
-        }
-
-        // attack/move towards target
-        if(targetAgent != null)
-        {
-            // check allies - so they are not killed
             bool allyTooClose = false;
-            foreach(var ally in GameData.Instance.allies)
+            foreach (var ally in GameData.Instance.allies)
             {
-                // calculate distance to ally
-                float allyDistance = Vector3.Distance(this.transform.position, ally.transform.position);
+                // only allive allies are considered
+                if (ally == null || ally.Health <= 0) continue;
 
-                // if ally close to agent
-                if(allyDistance <= closeRadius)
+                float allyDistance = Vector3.Distance(transform.position, ally.transform.position);
+                if (allyDistance <= closeRadius)
                 {
-                    // cant attack right now
+                    // dont shoot if the ally is too close
                     allyTooClose = true;
                     break;
                 }
             }
 
-            if(!allyTooClose)
+            if (!allyTooClose)
             {
-
-                if(!rocketShot)
+                if (!rocketShot)
                 {
                     steeringAgent.AttackWith(Attack.AttackType.Rocket);
                     rocketShot = true;
@@ -62,46 +41,63 @@ public class Cow_Attack : SteeringBehaviour
                 }
                 else
                 {
-                    // Move toward  the target agent
-                    Vector3 direction = (ClossestEnemy().CurrentVelocity - this.transform.position).normalized;
-                    steeringVelocity = direction * SteeringAgent.MaxCurrentSpeed;
+                    SteeringAgent closest = ClosestEnemy();
+                    if (closest != null)
+                    {
+                        // move towards the closest enemey
+                        Vector3 direction = (closest.transform.position - transform.position).normalized;
+                        steeringVelocity = direction * SteeringAgent.MaxCurrentSpeed;
+                    }
                 }
-
             }
         }
 
         return steeringVelocity;
-
     }
 
     private IEnumerator RocketCoolDown(float duration)
     {
         yield return new WaitForSeconds(duration);
         rocketShot = false;
-
     }
 
-    private SteeringAgent ClossestEnemy()
+    private SteeringAgent GetClosestEnemyInRange()
     {
-        SteeringAgent clossestEnemy = null;
+        SteeringAgent closest = null;
         float closestDistance = Mathf.Infinity;
 
-        for (int i = 0; i < GameData.Instance.enemies.Count; i++)
+        foreach (var enemy in GameData.Instance.enemies)
         {
-            float distance = Vector3.Distance(this.transform.position, GameData.Instance.enemies[i].transform.position);
-
-            if (distance <= closestDistance)
+            if (enemy == null || enemy.Health <= 0) continue;
+            // calculate closest enemey in attack range
+            float distance = Vector3.Distance(transform.position, enemy.transform.position);
+            if (distance < closestDistance && distance <= attackRadius)
             {
                 closestDistance = distance;
-                clossestEnemy = GameData.Instance.enemies[i];
+                closest = enemy;
             }
-
         }
-
-
-        return clossestEnemy;
-
+        return closest;
     }
 
+    private SteeringAgent ClosestEnemy()
+    {
+        SteeringAgent closest = null;
+        float closestDistance = Mathf.Infinity;
 
+        foreach (var enemy in GameData.Instance.enemies)
+        {
+            if (enemy == null || enemy.Health <= 0) continue;
+
+            // calculate distance to enemt
+            float distance = Vector3.Distance(transform.position, enemy.transform.position);
+            if (distance < closestDistance)
+            {
+                // update values
+                closestDistance = distance;
+                closest = enemy;
+            }
+        }
+        return closest;
+    }
 }
