@@ -34,11 +34,8 @@ public class CourageousAgent : SteeringAgent
                 {
                     SwitchState(State.SeenEnemy);
                 }
-                else if (EnemyInSight())
-                {
-                    SwitchState(State.SeenEnemy);
-                }
-                break;
+
+                    break;
  
             case State.SeenEnemy:
                 if(EnemyInAttackRange())
@@ -62,18 +59,20 @@ public class CourageousAgent : SteeringAgent
                 }
                 break;
         }
+
+        Debug.Log($"Enemy count: {GameData.Instance.enemies.Count}");
+        Debug.Log($"EnemyInSight: {EnemyInSight()}");
     }
 
     private bool EnemyInSight()
     {
-        for(int i = 0; i < GameData.Instance.enemies.Count; i++)
+        foreach (var enemy in GetValidEnemies())
         {
-            // calculate distance between player and each enemy
-            float distance = Vector3.Distance(this.transform.position, GameData.Instance.enemies[i].transform.position);
-
-            // if the enemy is within the sight range
-            if(distance <= sightRadius)
+            // calculate distance between this agent and the valid enemy
+            float distance = Vector3.Distance(transform.position, enemy.transform.position);
+            if (distance <= sightRadius)
             {
+                // return true if in sight
                 return true;
             }
 
@@ -86,18 +85,18 @@ public class CourageousAgent : SteeringAgent
 
     private bool EnemyInAttackRange()
     {
-        for (int i = 0; i < GameData.Instance.enemies.Count; i++)
+        foreach (var enemy in GetValidEnemies())
         {
-            // calculate distance between player and each enemy
-            float distance = Vector3.Distance(this.transform.position, GameData.Instance.enemies[i].transform.position);
-
-            // if the enemy is within the attack range
+            // calculate distance between this agent and enemy
+            float distance = Vector3.Distance(transform.position, enemy.transform.position);
             if (distance <= attackRadius)
             {
+                // return true if within sight
                 return true;
             }
 
         }
+
         return false;
     }
 
@@ -128,6 +127,31 @@ public class CourageousAgent : SteeringAgent
         }
 
         currentState = newState;
+        Debug.Log($"{name} switched to{newState}");
     }
+
+    private List <SteeringAgent> GetValidEnemies()
+    {
+        // create a new list of only valid enemies
+        List<SteeringAgent> validEnemies = new List<SteeringAgent>();
+
+        foreach(var enemy in GameData.Instance.enemies)
+        {
+            if(enemy ==  null)
+            {
+                continue;
+            }
+
+            if (!enemy.gameObject.activeInHierarchy)
+            {
+                continue;
+            }
+
+            validEnemies.Add(enemy);    
+        }
+
+        return validEnemies;
+    }
+
 
 }

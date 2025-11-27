@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -41,10 +42,7 @@ public class CowardlyAgent : SteeringAgent
                 {
                     SwitchState(State.SeenEnemy);
                 }
-                else if (EnemyInSight())
-                {
-                    SwitchState(State.SeenEnemy);
-                }
+
                 break;
 
             case State.SeenEnemy:
@@ -102,50 +100,43 @@ public class CowardlyAgent : SteeringAgent
 
     private bool EnemyInSight()
     {
-        // ensuring no null values are in the list
-        if (GameData.Instance == null || GameData.Instance.enemies == null)
-            return false;
-
-        foreach (var enemy in GameData.Instance.enemies)
+        foreach (var enemy in GetValidEnemies())
         {
-            // to ensure there are no null enemies being considered 
-            if (enemy == null) continue;
-
-            // calculate distance
+            // calculate distance between this agent and the valid enemy
             float distance = Vector3.Distance(transform.position, enemy.transform.position);
-
             if (distance <= sightRadius)
+            {
+                // return true if in sight
                 return true;
+            }
+
         }
         return false;
+
     }
 
     private bool EnemyInAttackRange()
     {
-        // ensure no null values are considered
-        if (GameData.Instance == null || GameData.Instance.enemies == null)
-            return false;
-
-        // for each enemy
-        foreach (var enemy in GameData.Instance.enemies)
+        foreach (var enemy in GetValidEnemies())
         {
-            if (enemy == null) continue;
-            // calculate distance to enemy
+            // calculate distance between this agent and enemy
             float distance = Vector3.Distance(transform.position, enemy.transform.position);
-
             if (distance <= attackRadius)
+            {
+                // return true if within sight
                 return true;
+            }
+
         }
+
         return false;
     }
 
     private bool EnemyTooClose(float range)
     {
-        // ensuring no null values are in the list
-        if (GameData.Instance == null || GameData.Instance.enemies == null)
-            return false;
 
-        foreach (var enemy in GameData.Instance.enemies)
+
+        foreach (var enemy in GetValidEnemies())
         {
             // to ensure there are no null enemies being considered 
             if (enemy == null) continue;
@@ -193,4 +184,30 @@ public class CowardlyAgent : SteeringAgent
         currentState = newState;
     }
 
+    private List<SteeringAgent> GetValidEnemies()
+    {
+        // create a new list of only valid enemies
+        List<SteeringAgent> validEnemies = new List<SteeringAgent>();
+
+        foreach (var enemy in GameData.Instance.enemies)
+        {
+            if (enemy == null)
+            {
+                continue;
+            }
+
+            if (!enemy.gameObject.activeInHierarchy)
+            {
+                continue;
+            }
+
+            validEnemies.Add(enemy);
+        }
+
+        return validEnemies;
+    }
+
+
 }
+
+
