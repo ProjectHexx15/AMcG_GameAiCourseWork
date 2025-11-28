@@ -4,9 +4,26 @@ using UnityEngine;
 
 public class OP_Courageous : SteeringBehaviour
 {
+    // offset persuit
     private Vector3 offset;
     private float arrivalRadius = 2.0f;
     private SteeringAgent targetAgent;
+    private SteeringAgent closestEnemy;
+
+    // path finding
+    private PathFinder pathFinder;
+    private GridManager gridManager;
+    private List<Node> currentPath;
+    private int pathIndex;
+
+    private void Awake()
+    {
+        // initialize path finding values
+        gridManager = new GridManager(Map.MapWidth, Map.MapHeight);
+        pathFinder = new PathFinder(gridManager);
+        currentPath = null;
+        pathIndex = 0;
+    }
 
     public override Vector3 UpdateBehaviour(SteeringAgent steeringAgent)
     {
@@ -34,8 +51,10 @@ public class OP_Courageous : SteeringBehaviour
 
         if (steeringAgent == targetAgent)
         {
-            // wander if the leader
-            desiredVelocity = Wander(steeringAgent);
+            // follow a* to the closest enemy
+            closestEnemy = ClosestEnemy();
+            Vector3 goal = closestEnemy.transform.position; // closest enemy agent
+            desiredVelocity = FollowPath(steeringAgent, goal);
             steeringVelocity = desiredVelocity - steeringAgent.CurrentVelocity;
             return desiredVelocity;
         }
@@ -95,30 +114,85 @@ public class OP_Courageous : SteeringBehaviour
         return desiredVelocity;
 
     }
-
-    // used for leader that isnt the mouse following one
-    private Vector3 Wander(SteeringAgent agent)
+    private Vector3 FollowPath(SteeringAgent agent, Vector3 targetWorldPos)
     {
-        float wanderRadius = 5.0f;
-        float wanderDistance = 10.0f;
-        float wanderJitter = 1.0f;
+        // convert world position to grid coord
+        int startX = Mathf.RoundToInt(agent.transform.position.x);
+        int startY = Mathf.RoundToInt(agent.transform.position.y);
+        int targetX = Mathf.RoundToInt(targetWorldPos.x);
+        int targetY = Mathf.RoundToInt(targetWorldPos.y);
 
-        // random displacement on x and y axis
-        Vector3 wanderTarget = new Vector3((Random.value - 0.5f) * wanderJitter, (Random.value - 0.5f) * wanderJitter, 0);
+        Node startNode = gridManager.GetNode(startX,  startY);
+        Node targetNode = gridManager.GetNode(targetX, targetY);
 
-        // normalize and scale to the circle radius - on the edge
-        wanderTarget = wanderTarget.normalized * wanderRadius;
+        if (currentPath == null || pathIndex >= currentPath.Count)
+        {
+            currentPath = pathFinder.FindPath(startNode, targetNode);
+            pathIndex = 0;
+        }
 
-        // move the circle in front of the agent, offset sideways
-        Vector3 targetLocal = Vector3.forward * wanderDistance + wanderTarget;
+        if(currentPath == null || pathIndex >= currentPath.Count)
+        {
+            return Vector3.zero;
+        }
 
-        // convert to world space
-        Vector3 targetWorld = agent.transform.TransformPoint(targetLocal);
+        Node nextNode = currentPath[pathIndex];
+        Vector3 nextPos = new Vector3(nextNode.x, agent.transform.position.y, nextNode.y);
 
-        // calculate and return velocity vector 
-        return (targetWorld - agent.transform.position).normalized * SteeringAgent.MaxCurrentSpeed;
+        Vector3 dir = (nextPos - agent.transform.position).normalized * SteeringAgent.MaxCurrentSpeed;
 
+        if (Vector3.Distance(agent.transform.position, nextPos) < 0.2)
+        {
+            pathIndex++;
+        }
 
+        return dir;
     }
+
+    private SteeringAgent ClosestEnemy()
+    {
+        SteeringAgent closest = null;
+        float closestDistance = Mathf.Infinity;
+
+        foreach (var enemy in GetValidEnemies())
+        {
+            if (enemy == null || enemy.Health <= 0) continue;
+
+            // calculate distance to enemt
+            float distance = Vector3.Distance(transform.position, enemy.transform.position);
+            if (distance < closestDistance)
+            {
+                // update values
+                closestDistance = distance;
+                closest = enemy;
+            }
+        }
+        return closest;
+    }
+
+    private List<SteeringAgent> GetValidEnemies()
+    {
+        // create a new list of only valid enemies
+        List<SteeringAgent> validEnemies = new List<SteeringAgent>();
+
+        foreach (var enemy in GameData.Instance.enemies)
+        {
+            if (enemy == null)
+            {
+                continue;
+            }
+
+            if (!enemy.gameObject.activeInHierarchy)
+            {
+                continue;
+            }
+
+            validEnemies.Add(enemy);
+        }
+
+        return validEnemies;
+    }
+
+
 
 }
